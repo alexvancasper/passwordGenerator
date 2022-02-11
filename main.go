@@ -17,6 +17,7 @@ const (
 
 var alphabet string
 var num int
+var password []string
 
 func randStringNum(password []string, alphabet string, num int) []string {
 	// var output []string
@@ -38,7 +39,7 @@ func randStringNum(password []string, alphabet string, num int) []string {
 	return password
 }
 
-func randString(num int) (password []string) {
+func randString(num int) []string {
 
 	//var password []string
 	var leftInt int
@@ -70,24 +71,24 @@ func init() {
 	flag.Parse()
 	num = *lengthPtr
 
-	if *captialFlagPtr && *smallFlagPtr && *digitsFlagPtr && *symbolsFlagPtr && *specSymbolsFlagPtr {
-		alphabet = fmt.Sprintf("%s%s%s%s%s", alphabetCaptial, alphabetSmall, digits, symbols, specSymbols)
-	}
-	if *captialFlagPtr && *smallFlagPtr && *digitsFlagPtr && *symbolsFlagPtr {
-		alphabet = fmt.Sprintf("%s%s%s%s", alphabetCaptial, alphabetSmall, digits, symbols)
-	}
-	if *captialFlagPtr && *smallFlagPtr && *digitsFlagPtr {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, alphabetSmall, digits)
+	if *captialFlagPtr {
+		alphabet = fmt.Sprintf("%s", alphabetCaptial)
 	}
 	if *captialFlagPtr && *smallFlagPtr {
 		alphabet = fmt.Sprintf("%s%s", alphabetCaptial, alphabetSmall)
 	}
-	if *captialFlagPtr {
-		alphabet = fmt.Sprintf("%s", alphabetCaptial)
+	if *captialFlagPtr && *smallFlagPtr && *digitsFlagPtr {
+		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, alphabetSmall, digits)
+	}
+	if *captialFlagPtr && *smallFlagPtr && *digitsFlagPtr && *symbolsFlagPtr {
+		alphabet = fmt.Sprintf("%s%s%s%s", alphabetCaptial, alphabetSmall, digits, symbols)
+	}
+	if *captialFlagPtr && *smallFlagPtr && *digitsFlagPtr && *symbolsFlagPtr && *specSymbolsFlagPtr {
+		alphabet = fmt.Sprintf("%s%s%s%s%s", alphabetCaptial, alphabetSmall, digits, symbols, specSymbols)
 	}
 
-	if *customerAlphabetPtr == "" {
-		alphabet = fmt.Sprintf("%s", customerAlphabetPtr)
+	if *customerAlphabetPtr != "" {
+		alphabet = fmt.Sprintf("%s", *customerAlphabetPtr)
 	}
 
 }
