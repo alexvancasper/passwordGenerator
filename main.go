@@ -3,7 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
+
 	"math/rand"
+	// "crypto/rand"
+	// "math/big"
 	"strings"
 )
 
@@ -43,7 +47,11 @@ func randString(num int) []string {
 
 	//var password []string
 	var leftInt int
+	rand.Seed(time.Now().UnixNano())
+
 	randomInt := rand.Intn(len(alphabet))
+	time.Sleep(time.Duration(10 * time.Millisecond))
+	// randomInt, err := rand.Int(rand.Reader, big.NewInt(6))
 	leftInt = randomInt - 1
 	if (randomInt - 1) < 1 {
 		leftInt = randomInt - 1
@@ -51,7 +59,6 @@ func randString(num int) []string {
 	if (randomInt + 1) > len(alphabet) {
 		leftInt = randomInt - 1
 	}
-
 	password = append(password, alphabet[leftInt:randomInt])
 	if len(password) != num {
 		password = randString(num)
