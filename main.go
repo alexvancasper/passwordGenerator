@@ -143,7 +143,7 @@ func initAlphabet(alphabetFlag Bitmask) (dict map[int]int) {
 
 func passwordCryptGenerate(length int, dictionary map[int]int) string {
 	if len(dictionary) == 0 {
-		return "error to initialaze the alphabet"
+		return "error to initialaze the alphabet; use -h for helping"
 	}
 	var passInt []int
 	for i := 0; i < length; i++ {
