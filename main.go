@@ -1,24 +1,16 @@
 package main
 
 import (
+	"crypto/rand"
 	"flag"
 	"fmt"
-	"strings"
-
-	"crypto/rand"
 	"math/big"
-	// "math/rand"
+	"strings"
 )
 
 type Bitmask uint
 
 const (
-	// alphabetCaptial string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	// alphabetSmall   string = "abcdefghijklmnopqrstuvwxyz"
-	// digits          string = "1234567890"
-	// symbols         string = "{}[]()/,;:.<>"
-	// specSymbols     string = "@#$%"
-
 	FLAG_CAPITAL Bitmask = 1 << iota
 	FLAG_SMALL
 	FLAG_DIGIT
@@ -28,11 +20,8 @@ const (
 )
 
 var (
-	// alphabet string
-	num int
-	// password []string
-	// passInt  []int
-	mainFlag Bitmask
+	passwdLen int
+	mainFlag  Bitmask
 )
 
 // based on unicode table
@@ -119,28 +108,6 @@ func initAlphabet(alphabetFlag Bitmask) (dict map[int]int) {
 	return dict
 }
 
-// func passwordGenerate(length int, dictionary map[int]int) string {
-
-// 	for i := 0; i < length; i++ {
-// 		rand.Seed(time.Now().UnixNano())
-// 		time.Sleep(time.Duration(1 * time.Microsecond))
-// 		if len(dictionary) == 0 {
-// 			return "error"
-// 		}
-// 		randomInt := rand.Intn(len(dictionary))
-// 		passInt = append(passInt, dictionary[randomInt])
-// 		if len(passInt) == length {
-// 			break
-// 		}
-// 	}
-// 	output := make([]string, length)
-// 	for key, value := range passInt {
-// 		output[key] = fmt.Sprintf("%c", value)
-// 	}
-
-// 	return strings.Join(output[:], "")
-// }
-
 func passwordCryptGenerate(length int, dictionary map[int]int) string {
 	if len(dictionary) == 0 {
 		return "error to initialaze the alphabet; use -h for helping"
@@ -176,7 +143,7 @@ func init() {
 	// customerAlphabetPtr := flag.String("custom", "", "use your own alphabet ")
 
 	flag.Parse()
-	num = *lengthPtr
+	passwdLen = *lengthPtr
 
 	if *captialFlagPtr {
 		mainFlag.AddFlag(FLAG_CAPITAL)
@@ -203,12 +170,7 @@ func init() {
 }
 
 func main() {
-	// pass := randString(num)
-	// fmt.Println(strings.Join(pass[:], ""))
 	resultDict := initAlphabet(mainFlag)
-	// pass := passwordGenerate(num, resultDict)
-	// fmt.Println(pass)
-	pass := passwordCryptGenerate(num, resultDict)
+	pass := passwordCryptGenerate(passwdLen, resultDict)
 	fmt.Println(pass)
-
 }
