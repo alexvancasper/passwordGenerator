@@ -4,105 +4,179 @@ import (
 	"flag"
 	"fmt"
 	"strings"
-	"time"
 
-	"math/bits"
-	"math/rand"
-	// "crypto/rand"
-	// "math/big"
+	"crypto/rand"
+	"math/big"
+	// "math/rand"
 )
 
 type Bitmask uint
 
 const (
-	alphabetCaptial string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	alphabetSmall   string = "abcdefghijklmnopqrstuvwxyz"
-	digits          string = "1234567890"
-	symbols         string = "{}[]()/,;:.<>"
-	specSymbols     string = "@#$%"
+	// alphabetCaptial string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	// alphabetSmall   string = "abcdefghijklmnopqrstuvwxyz"
+	// digits          string = "1234567890"
+	// symbols         string = "{}[]()/,;:.<>"
+	// specSymbols     string = "@#$%"
 
 	FLAG_CAPITAL Bitmask = 1 << iota
 	FLAG_SMALL
 	FLAG_DIGIT
 	FLAG_SYMBOL
 	FLAG_SPECSUMBOL
+	FLAG_MYSUMBOL
 )
 
 var (
-	alphabet string
-	num      int
-	password []string
+	// alphabet string
+	num int
+	// password []string
+	// passInt  []int
+	mainFlag Bitmask
 )
 
-// func (f Bitmask) HasFlag(flag Bitmask) bool { return f&flag != 0 }
-func (f *Bitmask) AddFlag(flag Bitmask) { *f |= flag }
+// based on unicode table
+//  symbols from 65 - 90  -> ABCDEFGHIJKLMNOPQRSTUVWXYZ
+//  symbols from 97 - 122 -> abcdefghijklmnopqrstuvwxyz
+//  symbols from 48 - 57  -> 1234567890
+//  symbols from 33 - 47, 58 - 63, 91 - 96, 123 - 126 -> special symbols
+
+func (f Bitmask) HasFlag(flag Bitmask) bool { return f&flag != 0 }
+func (f *Bitmask) AddFlag(flag Bitmask)     { *f |= flag }
 
 // func (f *Bitmask) ClearFlag(flag Bitmask)   { *f &= ^flag }
 // func (f *Bitmask) ToggleFlag(flag Bitmask)  { *f ^= flag }
 
-func randStringNum(password []string, alphabet string, num int) []string {
-	// var output []string
-	var leftInt int
-	randomInt := rand.Intn(len(alphabet))
-	leftInt = randomInt - 1
-	if (randomInt - 1) < 1 {
-		leftInt = randomInt - 1
+func initAlphabet(alphabetFlag Bitmask) (dict map[int]int) {
+	var l int = 0
+	dict = make(map[int]int, 93) //26+26+10+15+6+6+4
+	if alphabetFlag.HasFlag(FLAG_CAPITAL) {
+		for i := 65; i <= 90; i++ { // ABCDEFGHIJKLMNOPQRSTUVWXYZ -> 0..25
+			dict[l] = i
+			l++
+		}
 	}
-	if (randomInt + 1) > len(alphabet) {
-		leftInt = randomInt - 1
+	if alphabetFlag.HasFlag(FLAG_SMALL) {
+		for i := 97; i <= 122; i++ { //abcdefghijklmnopqrstuvwxyz -> 26 .. 51
+			dict[l] = i
+			l++
+		}
+	}
+	if alphabetFlag.HasFlag(FLAG_DIGIT) {
+		for i := 48; i <= 57; i++ { //1234567890 -> 10 ->  52..61
+			dict[l] = i
+			l++
+		}
+	}
+	if alphabetFlag.HasFlag(FLAG_SYMBOL) {
+		for i := 33; i <= 47; i++ { // 62..76  !#%&()*+,-./
+			if i == 34 || i == 36 || i == 39 {
+				continue
+			}
+			dict[l] = i
+			l++
+		}
+		for i := 58; i <= 63; i++ { // 77..82 :;< = >?
+			dict[l] = i
+			l++
+		}
+		for i := 91; i <= 95; i++ { // 83..88 [\]^_
+			dict[l] = i
+			l++
+		}
+		for i := 123; i <= 125; i++ { // 89..92 {|}
+			dict[l] = i
+			l++
+		}
+	}
+	if alphabetFlag.HasFlag(FLAG_SPECSUMBOL) { // " ' ` $ ~
+		dict[l] = 34 // "
+		l++
+		dict[l] = 39 // '
+		l++
+		dict[l] = 96 // `
+		l++
+		dict[l] = 36 // $
+		l++
+		dict[l] = 126 // ~
+	}
+	if alphabetFlag.HasFlag(FLAG_MYSUMBOL) { // !@# $%^ &
+		dict[l] = 33 // !
+		l++
+		dict[l] = 64 // @
+		l++
+		dict[l] = 35 // #
+		l++
+		dict[l] = 36 // $
+		l++
+		dict[l] = 37 // %
+		l++
+		dict[l] = 94 // ^
+		l++
+		dict[l] = 38 // &
 	}
 
-	password = append(password, alphabet[leftInt:randomInt])
-	if len(password) != num {
-		password = randStringNum(password, alphabet, num)
-	}
-
-	return password
+	return dict
 }
 
-func randString(num int) []string {
+// func passwordGenerate(length int, dictionary map[int]int) string {
 
-	//var password []string
-	var leftInt int
-	rand.Seed(time.Now().UnixNano())
-	if alphabet == "" {
-		return []string{"error"}
+// 	for i := 0; i < length; i++ {
+// 		rand.Seed(time.Now().UnixNano())
+// 		time.Sleep(time.Duration(1 * time.Microsecond))
+// 		if len(dictionary) == 0 {
+// 			return "error"
+// 		}
+// 		randomInt := rand.Intn(len(dictionary))
+// 		passInt = append(passInt, dictionary[randomInt])
+// 		if len(passInt) == length {
+// 			break
+// 		}
+// 	}
+// 	output := make([]string, length)
+// 	for key, value := range passInt {
+// 		output[key] = fmt.Sprintf("%c", value)
+// 	}
+
+// 	return strings.Join(output[:], "")
+// }
+
+func passwordCryptGenerate(length int, dictionary map[int]int) string {
+	if len(dictionary) == 0 {
+		return "error to initialaze the alphabet"
 	}
-	randomInt := rand.Intn(len(alphabet))
-	time.Sleep(time.Duration(10 * time.Millisecond))
-	// randomInt, err := rand.Int(rand.Reader, big.NewInt(6))
-	leftInt = randomInt - 1
-	if randomInt == 0 {
-		leftInt = randomInt
-		randomInt += 1
+	var passInt []int
+	for i := 0; i < length; i++ {
+		nBig, err := rand.Int(rand.Reader, big.NewInt(int64(len(dictionary))))
+		if err != nil {
+			panic(err)
+		}
+		n := nBig.Int64()
+		passInt = append(passInt, dictionary[int(n)])
+		if len(passInt) == length {
+			break
+		}
 	}
-	if (randomInt - 1) < 1 {
-		leftInt = randomInt - 1
-	}
-	if (randomInt + 1) > len(alphabet) {
-		leftInt = randomInt - 1
-	}
-	password = append(password, alphabet[leftInt:randomInt])
-	if len(password) != num {
-		password = randString(num)
+	output := make([]string, length)
+	for key, value := range passInt {
+		output[key] = fmt.Sprintf("%c", value)
 	}
 
-	return password
+	return strings.Join(output[:], "")
 }
 
 func init() {
 	lengthPtr := flag.Int("n", 16, "length of password")
-	captialFlagPtr := flag.Bool("C", false, "use alphabet \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\" ")
-	smallFlagPtr := flag.Bool("c", false, "use alphabet \"abcdefghijklmnopqrstuvwxyz\" ")
-	digitsFlagPtr := flag.Bool("d", false, "use alphabet \"1234567890\" ")
-	symbolsFlagPtr := flag.Bool("s", false, "use alphabet \"{}[]()/,;:.<>\" ")
-	specSymbolsFlagPtr := flag.Bool("a", false, "use alphabet \"@#$%\" ")
-	customerAlphabetPtr := flag.String("custom", "", "use your own alphabet ")
+	captialFlagPtr := flag.Bool("C", false, "use Capital lettter ABCDEFGHIJKLMNOPQRSTUVWXYZ ")
+	smallFlagPtr := flag.Bool("c", false, "use small letter abcdefghijklmnopqrstuvwxyz ")
+	digitsFlagPtr := flag.Bool("d", false, "use digits 1234567890 ")
+	symbolsFlagPtr := flag.Bool("s", false, "use symbols !#%&()*+,-./:;< = >?[\\]^_{|} ")
+	specSymbolsFlagPtr := flag.Bool("a", false, "use special symbols \"'`$~ ")
+	myOwnSymbolsFlagPtr := flag.Bool("m", false, "use special symbols !@#$%^& ")
+	// customerAlphabetPtr := flag.String("custom", "", "use your own alphabet ")
 
 	flag.Parse()
 	num = *lengthPtr
-
-	var mainFlag Bitmask
 
 	if *captialFlagPtr {
 		mainFlag.AddFlag(FLAG_CAPITAL)
@@ -119,111 +193,22 @@ func init() {
 	if *specSymbolsFlagPtr {
 		mainFlag.AddFlag(FLAG_SPECSUMBOL)
 	}
-	var number uint = bits.RotateLeft(uint(mainFlag), -5)
-
-	alphabet = fmt.Sprintf("%s%s%s", digits, alphabetCaptial, alphabetSmall)
-
-	if number == 31 {
-		alphabet = fmt.Sprintf("%s%s%s%s%s", alphabetCaptial, alphabetSmall, digits, symbols, specSymbols)
-	}
-	if number == 30 {
-		alphabet = fmt.Sprintf("%s%s%s%s", alphabetSmall, digits, symbols, specSymbols)
-	}
-	if number == 29 {
-		alphabet = fmt.Sprintf("%s%s%s%s", alphabetCaptial, digits, symbols, specSymbols)
-	}
-	if number == 28 {
-		alphabet = fmt.Sprintf("%s%s%s", digits, symbols, specSymbols)
-	}
-	if number == 27 {
-		alphabet = fmt.Sprintf("%s%s%s%s", alphabetCaptial, alphabetSmall, symbols, specSymbols)
-	}
-	if number == 26 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetSmall, symbols, specSymbols)
-	}
-	if number == 25 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, symbols, specSymbols)
-	}
-	if number == 24 {
-		alphabet = fmt.Sprintf("%s%s", symbols, specSymbols)
-	}
-	if number == 23 {
-		alphabet = fmt.Sprintf("%s%s%s%s", alphabetCaptial, alphabetSmall, digits, specSymbols)
-	}
-	if number == 22 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetSmall, digits, specSymbols)
-	}
-	if number == 21 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, digits, specSymbols)
-	}
-	if number == 20 {
-		alphabet = fmt.Sprintf("%s%s", digits, specSymbols)
-	}
-	if number == 19 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, alphabetSmall, specSymbols)
-	}
-	if number == 18 {
-		alphabet = fmt.Sprintf("%s%s", alphabetSmall, specSymbols)
-	}
-	if number == 17 {
-		alphabet = fmt.Sprintf("%s%s", alphabetCaptial, specSymbols)
-	}
-	if number == 16 {
-		alphabet = fmt.Sprintf("%s", specSymbols)
-	}
-	if number == 15 {
-		alphabet = fmt.Sprintf("%s%s%s%s", alphabetCaptial, alphabetSmall, digits, symbols)
-	}
-	if number == 14 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetSmall, digits, symbols)
-	}
-	if number == 13 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, digits, symbols)
-	}
-	if number == 12 {
-		alphabet = fmt.Sprintf("%s%s", digits, symbols)
-	}
-	if number == 11 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, alphabetSmall, symbols)
-	}
-	if number == 10 {
-		alphabet = fmt.Sprintf("%s%s", alphabetSmall, symbols)
-	}
-	if number == 9 {
-		alphabet = fmt.Sprintf("%s%s", alphabetCaptial, symbols)
-	}
-	if number == 8 {
-		alphabet = fmt.Sprintf("%s", symbols)
-	}
-	if number == 7 {
-		alphabet = fmt.Sprintf("%s%s%s", alphabetCaptial, alphabetSmall, digits)
-	}
-	if number == 6 {
-		alphabet = fmt.Sprintf("%s%s", alphabetSmall, digits)
-	}
-	if number == 5 {
-		alphabet = fmt.Sprintf("%s%s", alphabetCaptial, digits)
-	}
-	if number == 4 {
-		alphabet = fmt.Sprintf("%s", digits)
-	}
-	if number == 3 {
-		alphabet = fmt.Sprintf("%s%s", alphabetCaptial, alphabetSmall)
-	}
-	if number == 2 {
-		alphabet = fmt.Sprintf("%s", alphabetSmall)
-	}
-	if number == 1 {
-		alphabet = fmt.Sprintf("%s", alphabetCaptial)
+	if *myOwnSymbolsFlagPtr {
+		mainFlag.AddFlag(FLAG_MYSUMBOL)
 	}
 
-	if *customerAlphabetPtr != "" {
-		alphabet = fmt.Sprintf("%s", *customerAlphabetPtr)
-	}
-	fmt.Printf("%d\n", number)
+	// if *customerAlphabetPtr != "" {
+	// 	alphabet = fmt.Sprintf("%s", *customerAlphabetPtr)
+	// }
 }
 
 func main() {
-	pass := randString(num)
-	fmt.Println(strings.Join(pass[:], ""))
+	// pass := randString(num)
+	// fmt.Println(strings.Join(pass[:], ""))
+	resultDict := initAlphabet(mainFlag)
+	// pass := passwordGenerate(num, resultDict)
+	// fmt.Println(pass)
+	pass := passwordCryptGenerate(num, resultDict)
+	fmt.Println(pass)
+
 }
